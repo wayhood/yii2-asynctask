@@ -51,10 +51,11 @@ class Queue extends \yii\base\Component
         return $this->redis->rpush($queue, json_encode($data));
     }
 
-    public function pushRetry($data)
+    public function quickPush($queue, $data)
     {
-        $queue = 'queue:system:retry';
-        return $this->redis->rpush($queue, json_encode($data));
+        $this->redis->sadd('queues', $queue);
+        $queue = 'queue:'.$queue;
+        return $this->redis->lpush($queue, json_encode($data));
     }
 
     /**
@@ -65,14 +66,6 @@ class Queue extends \yii\base\Component
     public function pop($queue)
     {
         $queue = 'queue:'.$queue;
-        $data = $this->redis->lpop($queue);
-        $data = @json_decode($data, true);
-        return $data;
-    }
-
-    public function popRetry()
-    {
-        $queue = 'queue:system:retry';
         $data = $this->redis->lpop($queue);
         $data = @json_decode($data, true);
         return $data;
@@ -98,15 +91,58 @@ class Queue extends \yii\base\Component
         return $this->redis->zadd($key, doubleval(microtime(true)), json_encode($data));
     }
 
+    public function setSchedule($data, $score)
+    {
+        $key = 'schedule';
+        return $this->redis->zadd($key, doubleval($score), json_encode($data));
+    }
 
     public function getReties($remove=true)
     {
         $key = 'retry';
         $score = doubleval(microtime(true));
-        $result = $this->redis->zrangebyscore('retry', -1, $score);
+        $result = $this->redis->zrangebyscore($key, -1, $score);
         if ($remove) {
-            $this->redis->zremrangebyscore('retry', -1, $score);
+            $this->redis->zremrangebyscore($key, -1, $score);
         }
         return $result;
+    }
+
+    public function getSchedules($remove=true)
+    {
+        $key = 'schedule';
+        $score = doubleval(microtime(true));
+        $result = $this->redis->zrangebyscore($key, -1, $score);
+        if ($remove) {
+            $this->redis->zremrangebyscore($key, -1, $score);
+        }
+        return $result;
+    }
+
+    public function setStat($type = true)
+    {
+        $currentFailedKey = 'stat:failed';
+        $currentProcessedKey = 'stat:processed';
+        if ($type == true) {
+            $this->redis->incr($currentProcessedKey);
+        } else {
+            $this->redis->incr($currentFailedKey);
+        }
+    }
+
+    public function setStatDay($currentDate)
+    {
+        $currentFailedKey = 'stat:failed';
+        $currentProcessedKey = 'stat:processed';
+
+        $currentFailedNum = $this->redis->get($currentFailedKey);
+        $currentProcessedNum = $this->redis->get($currentProcessedKey);
+
+        $this->redis->set($currentFailedKey.':'.$currentDate, intval($currentFailedNum));
+        $this->redis->set($currentProcessedKey.':'.$currentDate, intval($currentProcessedNum));
+
+        $this->redis->set($currentFailedKey, 0);
+        $this->redis->set($currentProcessedKey, 0);
+
     }
 }

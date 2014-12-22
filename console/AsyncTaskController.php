@@ -28,23 +28,33 @@ class AsyncTaskController extends \yii\console\Controller
     public $phpEnv;
 
     /**
+     * max process num;
+     * @var int
+     */
+    public $processMaxNum = 10;
+
+    /**
      * 选项
      * @param string $actionID
      * @return array
      */
     public function options($actionID)
     {
-        return array_merge(
-            parent::options($actionID),
-            ['phpEnv'] // global for all actions
-        );
+        if ($actionID == 'index') {
+            return array_merge(
+                parent::options($actionID),
+                ['phpEnv', 'processMaxNum']
+            );
+        } else {
+            return parent::options($actionID);
+        }
     }
 
     /**
      * 处理一个Worker
      * @param string $q queue name
      */
-    public function actionWorker($q=null)
+    public function actionWorker($q="default")
     {
         $retried_at = date('Y-m-d H:i:s');
 
@@ -53,17 +63,15 @@ class AsyncTaskController extends \yii\console\Controller
             'redis' => $this->module->redis
         ]);
 
-        if ($q == null) {
-            $data = $queue->popRetry();
-        } else {
-            $data = $queue->pop($q);
-        }
+        $data = $queue->pop($q);
 
         if (!is_null($data)) {
             try {
+                $queue->setStat();
                 forward_static_call_array([$data['class'], 'run'], $data['args']);
             } catch (\Exception $e) {
                 if ($data['retry']) {
+                    $queue->setStat(false);
                     $queue->setRetry([
                         'retry' => $data['retry'],
                         'class' => $data['class'],
@@ -108,13 +116,28 @@ class AsyncTaskController extends \yii\console\Controller
             }
         }
 
-        while(1) {
-            //处理schedule
-            //TODO
+        $currentDate = date('Y-m-d');
 
-            //处理retry
-            $list = $queue->getReties();
-            foreach($list as $data) {
+        while(1) {
+            if (date('d') != date('d', strtotime($currentDate))) {
+                sleep(5);
+                $this->setStatDay($currentDate);
+                $currentDate = date('Y-m-d');
+            }
+
+            //process schedule
+            $scheduleList = $queue->getSchedules();
+            foreach($scheduleList as $data) {
+                $data = @json_decode($data, true);
+                if (!is_null($data)) {
+                    $queue->quickPush($data['queue'], $data);
+                }
+            }
+            unset($scheduleList);
+
+            //process retry
+            $retryList = $queue->getReties();
+            foreach($retryList as $data) {
                 $data = @json_decode($data, true);
                 if (!is_null($data)) {
                     if ($data['retry_count'] >= 20) {
@@ -123,18 +146,26 @@ class AsyncTaskController extends \yii\console\Controller
                     //checkout retry time
                     $second = pow($data['retry_count'], 4) + 15 + rand(0, 30) * ($data['retry_count'] + 1);
                     if (time() > strtotime($data['retried_at']) + $second) {
-                        $queue->pushRetry($data);
+                        $queue->quickPush($data['queue'], $data);
                     } else { //no process
                         $queue->setRetry($data);
                     }
                 }
             }
-            exec(trim($command). '/worker &');
 
-            //处理队列
-            foreach($queueNames as $queueName) {
-                //echo $command. '/worker "'. $queueName.'" &'."\n";
-                exec(trim($command). '/worker "'. $queueName.'" &');
+            //process queue
+            $max = $this->processMaxNum;
+
+            $str = $this->module->id.'/worker';
+            $current = intval(`ps -ef | grep "$str" |  grep -v grep | wc -l`);
+
+            $subProcessNum = $max-$current;
+            while($subProcessNum>0) {
+                foreach($queueNames as $queueName) {
+                    //echo $command. '/worker "'. $queueName.'" &'."\n";
+                    exec(trim($command). '/worker "'. $queueName.'" &');
+                }
+                $subProcessNum--;
             }
         }
     }
