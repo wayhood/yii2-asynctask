@@ -57,14 +57,6 @@ run
 
 a, b and c was queue name.
 
-run a worker for test
-
-```php
-./yii asynctask/worker "a"
-```
-
-a was queue name.only one queue.
-
 
 CREATE WORKER FILE
 

@@ -51,6 +51,12 @@ class Queue extends \yii\base\Component
         return $this->redis->rpush($queue, json_encode($data));
     }
 
+    public function pushRetry($data)
+    {
+        $queue = 'queue:system:retry';
+        return $this->redis->rpush($queue, json_encode($data));
+    }
+
     /**
      * get a data from queue
      * @param $queue
@@ -59,6 +65,14 @@ class Queue extends \yii\base\Component
     public function pop($queue)
     {
         $queue = 'queue:'.$queue;
+        $data = $this->redis->lpop($queue);
+        $data = @json_decode($data, true);
+        return $data;
+    }
+
+    public function popRetry()
+    {
+        $queue = 'queue:system:retry';
         $data = $this->redis->lpop($queue);
         $data = @json_decode($data, true);
         return $data;
@@ -82,5 +96,17 @@ class Queue extends \yii\base\Component
     {
         $key = 'retry';
         return $this->redis->zadd($key, doubleval(microtime(true)), json_encode($data));
+    }
+
+
+    public function getReties($remove=true)
+    {
+        $key = 'retry';
+        $score = doubleval(microtime(true));
+        $result = $this->redis->zrangebyscore('retry', -1, $score);
+        if ($remove) {
+            $this->redis->zremrangebyscore('retry', -1, $score);
+        }
+        return $result;
     }
 }
