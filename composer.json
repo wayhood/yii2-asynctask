@@ -1,0 +1,23 @@
+{
+    "name": "wayhood/yii2-asynctask",
+    "description": "a queue extension using redis for yii2",
+    "type": "yii2-extension",
+    "keywords": ["queue","worker","job","yii2","redis"],
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Song Yeung",
+            "email": "netyum@163.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*",
+        "yiisoft/yii2-redis": "*",
+        "jeremeamia/superclosure": "~1.0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "wh\\asynctask\\": ""
+        }
+    }
+}
