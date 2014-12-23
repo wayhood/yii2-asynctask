@@ -17,4 +17,16 @@ use yii\web\NotFoundHttpException;
 class Controller extends \yii\web\Controller
 {
     public $layout = 'main';
+
+    public $queue = null;
+
+    public function init()
+    {
+        parent::init();
+
+        $this->queue = Yii::createObject([
+            'class' => 'wh\asynctask\Queue',
+            'redis' => $this->module->redis
+        ]);
+    }
 } 

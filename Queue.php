@@ -113,7 +113,7 @@ class Queue extends \yii\base\Component
         return $result;
     }
 
-    public function getSchedules($remove=true)
+    public function getSchedule($remove=true)
     {
         $key = 'schedule';
         $score = doubleval(microtime(true));
@@ -149,5 +149,82 @@ class Queue extends \yii\base\Component
         $this->redis->set($currentFailedKey, 0);
         $this->redis->set($currentProcessedKey, 0);
 
+    }
+
+
+    public function getStat($type = true)
+    {
+        $currentFailedKey = 'stat:failed';
+        $currentProcessedKey = 'stat:processed';
+        if ($type == true) {
+            $stat = $this->redis->get($currentProcessedKey);
+        } else {
+            $stat = $this->redis->get($currentFailedKey);
+        }
+        return intval($stat);
+    }
+
+    public function getQueueCount()
+    {
+        $queueNames = $this->getQueues();
+
+        $count = 0;
+        foreach($queueNames as $queueName) {
+            $count += intval($this->redis->llen('queue:'.$queueName));
+        }
+        return $count;
+    }
+
+    public function getRetryCount()
+    {
+        $key = 'retry';
+        $count = $this->redis->executeCommand('ZLEXCOUNT', [$key, '-', '+']);
+        return intval($count);
+    }
+
+    public function getScheduleCount()
+    {
+        $key = 'schedule';
+        $count = $this->redis->executeCommand('ZLEXCOUNT', [$key, '-', '+']);
+        return intval($count);
+    }
+
+    public function getAllSchedule()
+    {
+        $key = 'schedule';
+        $result = $this->redis->zrange($key, 0, -1, 'WITHSCORES');
+        return $result;
+    }
+
+    public function getAllRetries()
+    {
+        $key = 'retry';
+        $result = $this->redis->zrange($key, 0, -1, 'WITHSCORES');
+        return $result;
+    }
+
+    public function getQueueSize($queue)
+    {
+        $queue = 'queue:'.$queue;
+        return $this->redis->llen($queue);
+    }
+
+    public function getQueueList($queue, $start, $stop)
+    {
+        $queue = 'queue:'.$queue;
+        return $this->redis->lrange($queue, $start, $stop);
+    }
+
+    public function removeQueue($queue)
+    {
+        $this->redis->srem('queues', $queue);
+        $queue = 'queue:'.$queue;
+        return $this->redis->del($queue);
+    }
+
+    public function removeQueueItem($queue, $data)
+    {
+        $queue = 'queue:'.$queue;
+        $this->redis->lrem($queue, -1, $data);
     }
 }

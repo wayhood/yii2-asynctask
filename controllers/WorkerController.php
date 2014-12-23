@@ -5,6 +5,8 @@
 
 namespace wh\asynctask\controllers;
 
+use yii\data\ArrayDataProvider;
+
 /**
  * Class WorkerController
  * @package wh\asynctask\controllers

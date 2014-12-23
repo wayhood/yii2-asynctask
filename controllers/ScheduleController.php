@@ -5,6 +5,8 @@
 
 namespace wh\asynctask\controllers;
 
+use yii\data\ArrayDataProvider;
+
 /**
  * Class ScheduleController
  * @package wh\asynctask\controllers
@@ -15,6 +17,30 @@ class ScheduleController extends \wh\asynctask\base\Controller
 {
     public function actionIndex()
     {
-        return $this->render('index');
+        $schedule = $this->queue->getAllSchedule();
+
+        $newSchedule = [];
+
+        foreach($schedule as $key => $row) {
+            if ($key % 2 != 0) {
+                $newSchedule[$key-1]['when'] = $row;
+            } else {
+                $data = json_decode($row, true);
+                $newSchedule[$key] = [
+                    'job_id' => $data['job_id'],
+                    'queue' => $data['queue'],
+                    'worker' => $data['class'],
+                    'arguments' => $data['args']
+                ];
+            }
+        }
+
+
+        $dataProvider = new ArrayDataProvider([
+            'key' => 'job_id',
+            'allModels' => $newSchedule
+        ]);
+
+        return $this->render('index', ['dataProvider' => $dataProvider]);
     }
 } 

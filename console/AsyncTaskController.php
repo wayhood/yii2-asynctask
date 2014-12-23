@@ -126,7 +126,7 @@ class AsyncTaskController extends \yii\console\Controller
             }
 
             //process schedule
-            $scheduleList = $queue->getSchedules();
+            $scheduleList = $queue->getSchedule();
             foreach($scheduleList as $data) {
                 $data = @json_decode($data, true);
                 if (!is_null($data)) {

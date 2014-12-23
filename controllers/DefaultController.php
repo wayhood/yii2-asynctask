@@ -15,8 +15,15 @@ use Yii;
  */
 class DefaultController extends \wh\asynctask\base\Controller
 {
+    public function init()
+    {
+        parent::init();
+    }
+
     public function actionIndex()
     {
         return $this->render('index');
     }
+
+
 } 

@@ -1,7 +1,9 @@
 <?php
+use \Yii;
 use yii\bootstrap\NavBar;
 use yii\bootstrap\Nav;
 use yii\helpers\Html;
+use yii\helpers\Url;
 
 /* @var $this \yii\web\View */
 /* @var $content string */
@@ -28,6 +30,7 @@ NavBar::begin([
 ]);
 echo Nav::widget([
     'options' => ['class' => 'nav navbar-nav navbar-right'],
+    'route' =>  Yii::$app->controller->getUniqueId().'/index',
     'items' => [
         ['label' => 'Dashboard', 'url' => ['default/index']],
         ['label' => 'Workers', 'url' => ['worker/index']],
@@ -43,34 +46,34 @@ NavBar::end();
     <div class="col-sm-12 summary_bar">
         <ul class="list-unstyled summary row">
             <li class="processed col-sm-2">
-                <span class="count">27</span>
+                <span class="count"><?=$this->context->queue->getStat();?></span>
                 <span class="desc">Processed</span>
             </li>
             <li class="failed col-sm-2">
-                <span class="count">25</span>
+                <span class="count"><?=$this->context->queue->getStat(false);?></span>
                 <span class="desc">Failed</span>
             </li>
             <li class="busy col-sm-2">
-                <a href="/admin/sidekiq/workers">
+                <a href="<?=Url::to(['worker/index']);?>">
                     <span class="count">0</span>
                     <span class="desc">Busy</span>
                 </a>
             </li>
             <li class="enqueued col-sm-2">
-                <a href="/admin/sidekiq/queues">
-                    <span class="count">5</span>
+                <a href="<?=Url::to(['queue/index']);?>">
+                    <span class="count"><?=$this->context->queue->getQueueCount();?></span>
                     <span class="desc">Enqueued</span>
                 </a>
             </li>
             <li class="retries col-sm-2">
-                <a href="/admin/sidekiq/retries">
-                    <span class="count">0</span>
+                <a href="<?=Url::to(['retry/index']);?>">
+                    <span class="count"><?=$this->context->queue->getRetryCount();?></span>
                     <span class="desc">Retries</span>
                 </a>
             </li>
             <li class="scheduled col-sm-2">
-                <a href="/admin/sidekiq/scheduled">
-                    <span class="count">0</span>
+                <a href="<?=Url::to(['schedule/index']);?>">
+                    <span class="count"><?=$this->context->queue->getScheduleCount();?></span>
                     <span class="desc">Scheduled</span>
                 </a>
             </li>
