@@ -121,7 +121,7 @@ class AsyncTaskController extends \yii\console\Controller
         while(1) {
             if (date('d') != date('d', strtotime($currentDate))) {
                 sleep(5);
-                $this->setStatDay($currentDate);
+                $queue->setStatDay($currentDate);
                 $currentDate = date('Y-m-d');
             }
 
@@ -148,7 +148,7 @@ class AsyncTaskController extends \yii\console\Controller
                     if (time() > strtotime($data['retried_at']) + $second) {
                         $queue->quickPush($data['queue'], $data);
                     } else { //no process
-                        $queue->setRetry($data);
+                        $queue->setRetry($data, microtime(true)+$second);
                     }
                 }
             }

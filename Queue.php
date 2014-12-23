@@ -85,10 +85,15 @@ class Queue extends \yii\base\Component
      * @param $data
      * @return mixed
      */
-    public function setRetry($data)
+    public function setRetry($data, $score=null)
     {
         $key = 'retry';
-        return $this->redis->zadd($key, doubleval(microtime(true)), json_encode($data));
+        if (is_null($score)) {
+            $socre = doubleval(microtime(true))
+        } else {
+            $score = doubleval($score);
+        }
+        return $this->redis->zadd($key, $score, json_encode($data));
     }
 
     public function setSchedule($data, $score)
