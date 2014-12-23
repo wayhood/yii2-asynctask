@@ -89,7 +89,7 @@ class Queue extends \yii\base\Component
     {
         $key = 'retry';
         if (is_null($score)) {
-            $socre = doubleval(microtime(true))
+            $socre = doubleval(microtime(true));
         } else {
             $score = doubleval($score);
         }
