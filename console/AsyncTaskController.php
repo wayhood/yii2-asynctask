@@ -63,11 +63,14 @@ class AsyncTaskController extends \yii\console\Controller
             'redis' => $this->module->redis
         ]);
 
+        /** @var $identity string */
+        $identity = $queue->getWorkerIdentity();
+
         $data = $queue->pop($q);
 
         if (!is_null($data)) {
             try {
-                $queue->setStat();
+                $queue->setWorkerStart($identity, $data);
                 forward_static_call_array([$data['class'], 'run'], $data['args']);
             } catch (\Exception $e) {
                 if ($data['retry']) {
@@ -86,6 +89,8 @@ class AsyncTaskController extends \yii\console\Controller
                     ]);
                 }
             }
+            $queue->setStat();
+            $queue->setWorkerEnd($identity);
         }
     }
 

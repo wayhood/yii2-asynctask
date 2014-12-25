@@ -164,6 +164,12 @@ class Queue extends \yii\base\Component
         return intval($stat);
     }
 
+    public function getWorkerCount()
+    {
+        $count = $this->redis->executeCommand('SCARD', ['workers']);
+        return intval($count);
+    }
+
     public function getQueueCount()
     {
         $queueNames = $this->getQueues();
@@ -226,5 +232,56 @@ class Queue extends \yii\base\Component
     {
         $queue = 'queue:'.$queue;
         $this->redis->lrem($queue, -1, $data);
+    }
+
+    public function getWorkerIdentity()
+    {
+        $pid = @getmypid();
+        $hostname = @gethostname();
+        $ip = @gethostbyname($hostname);
+
+        if (!$ip) {
+            $ip = 'unknow';
+        }
+        if (!$hostname) {
+            $hostname = 'unknow';
+        }
+        return $hostname. ':'. $ip .':'. $pid;
+    }
+
+    public function setWorkerStart($identity, $data)
+    {
+        $timeout = 180 * 24 * 60 * 60;
+        $this->redis->sadd('workers', $identity);
+        $this->redis->setex('worker:'. $identity. ':started', $timeout, microtime(true));
+
+        $hash = [
+            'queue' => $data['queue'],
+            'playload' => $data,
+            'run_at' => microtime(true),
+        ];
+        $this->redis->setex('worker:'. $identity, $timeout, json_encode($hash));
+    }
+
+    public function setWorkerEnd($identity)
+    {
+        $this->redis->srem('workers', $identity);
+        $this->redis->del('worker:'. $identity);
+        $this->redis->del('worker:'. $identity .':started');
+    }
+
+    public function getWorkerList()
+    {
+        return $this->redis->smembers('workers');
+    }
+
+    public function getWorkerStarted($identity)
+    {
+        return $this->redis->get('worker:'. $identity .':started');
+    }
+
+    public function getWorkerInfo($identity)
+    {
+        return $this->redis->get('worker:'. $identity);
     }
 }

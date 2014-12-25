@@ -17,6 +17,31 @@ class WorkerController extends \wh\asynctask\base\Controller
 {
     public function actionIndex()
     {
-        return $this->render('index');
+        $workers = $this->queue->getWorkerList();
+
+        $newWorkers = [];
+
+        foreach($workers as $identity) {
+            $info = $this->queue->getWorkerInfo($identity);
+            if (is_null($info)) {
+                break;
+            }
+            $hash = json_decode($info, true);
+
+            $newWorkers[] = [
+                //'job_id' => $hash['playload']['job_id'],
+                'worker' => $identity,
+                'started' => $this->queue->getWorkerStarted($identity),
+                'arguments' => $hash['playload']['args'],
+                'queue' => $hash['queue'],
+                'class' => $hash['playload']['class'],
+            ];
+        }
+        $dataProvider = new ArrayDataProvider([
+            'key' => 'worker',
+            'allModels' => $newWorkers
+        ]);
+
+        return $this->render('index', ['dataProvider' => $dataProvider]);
     }
 } 

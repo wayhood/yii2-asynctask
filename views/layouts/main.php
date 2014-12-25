@@ -55,7 +55,7 @@ NavBar::end();
             </li>
             <li class="busy col-sm-2">
                 <a href="<?=Url::to(['worker/index']);?>">
-                    <span class="count">0</span>
+                    <span class="count"><?=$this->context->queue->getWorkerCount();?></span>
                     <span class="desc">Busy</span>
                 </a>
             </li>
