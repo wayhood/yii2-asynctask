@@ -177,14 +177,9 @@ class AsyncTaskController extends \yii\console\Controller
 
     protected function getCommandLine()
     {
-        $scriptName = isset($_SERVER['_']) ? $_SERVER['_'] : '/usr/bin/php';
+        $this->phpEnv = is_null($this->phpEnv) ? '/usr/bin/php' : $this->phpEnv;
         $yii = $_SERVER['argv'][0];
-        if (substr($scriptName, strlen($yii)*-1) == $yii) {
-            $command = $scriptName .' '. $this->module->id;
-        } else {
-            $yii = $_SERVER['PWD'].'/yii';
-            $command = $scriptName .' '. $this->phpEnv .' '. $yii .' '. $this->module->id;
-        }
+        $command = $this->phpEnv .' '. $yii .' '. $this->module->id;
 
         return $command;
     }
