@@ -102,6 +102,8 @@ class AsyncTaskController extends \yii\console\Controller
     {
         $command  = $this->getCommandLine();
 
+        $logPath = $this->module->getWorkerLogPath();
+
         $queue = Yii::createObject([
             'class' => 'wh\asynctask\Queue',
             'redis' => $this->module->redis
@@ -161,20 +163,27 @@ class AsyncTaskController extends \yii\console\Controller
             //process queue
             $max = $this->processMaxNum;
 
-            $str = $this->module->id.'/worker';
-            $current = intval(`ps -ef | grep "$str" |  grep -v grep | wc -l`);
+            foreach($queueNames as $queueName) {
+                if ($queue->getQueueSize($queueName) > 0) {
+                    // has queue
+                    $currentSubProcessNum = $this->getCurrentSubProcessNum();
+                    $subProcessNum = $max - $currentSubProcessNum;
+                    if ($subProcessNum > 0) {
+                        $logStdout = "{$logPath}/{$queueName}.{$currentDate}.stdout.log";
+                        $logStderr = "{$logPath}/{$queueName}.{$currentDate}.stderr.log";
 
-            $subProcessNum = $max-$current;
-            while($subProcessNum>0) {
-                foreach($queueNames as $queueName) {
-                    //echo $command. '/worker "'. $queueName.'" &'."\n";
-                    exec(trim($command). '/worker "'. $queueName.'" &');
+                        $realCommand = sprintf('%s/worker "%s" >> %s  2>>%s &', trim($command), $queueName, $logStdout, $logStderr);
+                        exec($realCommand);
+                    }
                 }
-                $subProcessNum--;
             }
         }
     }
 
+    /**
+     * get command line
+     * @return string
+     */
     protected function getCommandLine()
     {
         $this->phpEnv = is_null($this->phpEnv) ? '/usr/bin/php' : $this->phpEnv;
@@ -184,4 +193,14 @@ class AsyncTaskController extends \yii\console\Controller
         return $command;
     }
 
+    /**
+     * get current sub process num
+     * @return int
+     */
+    protected function getCurrentSubProcessNum()
+    {
+        $str = $this->module->id.'/worker';
+        $current = intval(`ps -ef | grep "$str" |  grep -v grep | wc -l`);
+        return $current;
+    }
 } 
