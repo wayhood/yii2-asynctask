@@ -44,4 +44,11 @@ class WorkerController extends \wh\asynctask\base\Controller
 
         return $this->render('index', ['dataProvider' => $dataProvider]);
     }
+
+
+    public function actionRetry($identity)
+    {
+        //$this->queue->getWorkerInfo($identity);
+        //$this->queue->setWorkerEnd($identity);
+    }
 } 

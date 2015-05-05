@@ -19,6 +19,21 @@ class Module extends \yii\base\Module implements BootstrapInterface
 {
     public $redis = 'redis';
 
+    private $_workerLogPath = null;
+
+    public function setWorkerLogPath($path)
+    {
+        $this->_workerLogPath = Yii::getAlias($path);
+    }
+
+    public function getWorkerLogPath()
+    {
+        if (is_null($this->_workerLogPath)) {
+            $this->_workerLogPath = Yii::$app->getRuntimePath();
+        }
+        return $this->_workerLogPath;
+    }
+
     public function bootstrap($app)
     {
         if ($app instanceof \yii\web\Application) {

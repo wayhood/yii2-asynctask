@@ -40,10 +40,24 @@ $this->title = 'Workers';
                 'value' => function($data) {
                     return date('Y-m-d H:i:s', $data['started']);
                 }
-            ]
-            /*[
+            ],
+            [
+                'header' => '操作',
                 'class' => 'yii\grid\ActionColumn',
-            ],*/
+                'template' => '{retry} {delete}',
+                'buttons' => [
+                    'retry' => function($url, $model, $key) {
+                        return Html::a('重试', $url, [
+                            'title' => '重试',
+                        ]);
+                    },
+                    'delete' => function($url, $model, $key) {
+                        return Html::a('删除', $url,  [
+                            'title' => '删除'
+                        ]);
+                     }
+                ]
+            ]
         ],
     ]); ?>
 </div>
