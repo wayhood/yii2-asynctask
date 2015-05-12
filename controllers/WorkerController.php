@@ -46,9 +46,32 @@ class WorkerController extends \wh\asynctask\base\Controller
     }
 
 
-    public function actionRetry($identity)
+    public function actionRetry($id)
     {
-        //$this->queue->getWorkerInfo($identity);
-        //$this->queue->setWorkerEnd($identity);
+        //echo $id;exit;
+        $info = @json_decode($this->queue->getWorkerInfo($id), true);
+        if (isset($info['payload'])) {
+            $data = $info['payload'];
+            $this->queue->setRetry([
+                'retry' => $data['retry'],
+                'class' => $data['class'],
+                'args' => $data['args'],
+                'enqueued_at' => $data['enqueued_at'],
+                'error_message' => 'worker faild',
+                'failed_at' => date('Y-m-d H:i:s'),
+                'job_id' => $data['job_id'],
+                'queue' => $data['queue'],
+                'retried_at' => isset($data['retried_at']) ? $retried_at : date('Y-m-d H:i:s'),
+                'retry_count' => isset($data['retry_count']) ? intval($data['retry_count'])+1 : 0,
+            ]);
+            $this->queue->setWorkerEnd($id);
+        }
+        $this->redirect(['index']);
+    }
+
+    public function actionDelete($id)
+    {
+        $this->queue->setWorkerEnd($id);
+        $this->redirect(['index']);
     }
 } 
