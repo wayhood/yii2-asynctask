@@ -126,6 +126,11 @@ class AsyncTaskController extends \yii\console\Controller
         $currentDate = date('Y-m-d');
 
         while(1) {
+            $ret = $queue->redis->executeCommand('PING');
+            if (!$ret) {
+                break;
+            }
+
             if (date('d') != date('d', strtotime($currentDate))) {
                 sleep(5);
                 $queue->setStatDay($currentDate);
