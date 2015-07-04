@@ -22,12 +22,12 @@ class Bootstrap implements BootstrapInterface
 
         if ($app instanceof \yii\web\Application) {
             $app->getUrlManager()->addRules([
-                $this->id => $this->id . '/default/index',
+                $this->id => 'asynctask/default/index',
                 $this->id . '/<id:\w+>' => $this->id . '/default/view',
                 $this->id . '/<controller:[\w\-]+>/<action:[\w\-]+>' => $this->id . '/<controller>/<action>',
             ], false);
         } elseif ($app instanceof \yii\console\Application) {
-            $app->controllerMap[$this->id] = [
+            $app->controllerMap['asynctask'] = [
                 'class' => 'wh\asynctask\console\AsyncTaskController',
                 'module' => $this,
             ];
