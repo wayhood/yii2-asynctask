@@ -10,10 +10,10 @@ use yii\i18n\PhpMessageSource;
 
 class Bootstrap implements BootstrapInterface
 {
-	/** @inheritdoc */
+    /** @inheritdoc */
     public function bootstrap($app)
     {
-		if (!isset($app->get('i18n')->translations['asynctask*'])) {
+        if (!isset($app->get('i18n')->translations['asynctask*'])) {
             $app->get('i18n')->translations['asynctask*'] = [
                 'class'    => PhpMessageSource::className(),
                 'basePath' => __DIR__.'/messages',
@@ -22,14 +22,14 @@ class Bootstrap implements BootstrapInterface
 
         if ($app instanceof \yii\web\Application) {
             $app->getUrlManager()->addRules([
-                $this->id => 'asynctask/default/index',
-                $this->id . '/<id:\w+>' => $this->id . '/default/view',
-                $this->id . '/<controller:[\w\-]+>/<action:[\w\-]+>' => $this->id . '/<controller>/<action>',
+                'asynctask' => 'asynctask/default/index',
+                'asynctask/<id:\w+>' => 'asynctask/default/view',
+                'asynctask/<controller:[\w\-]+>/<action:[\w\-]+>' => 'asynctask/<controller>/<action>',
             ], false);
         } elseif ($app instanceof \yii\console\Application) {
             $app->controllerMap['asynctask'] = [
                 'class' => 'wh\asynctask\console\AsyncTaskController',
-                'module' => $this,
+                'module' => $app->getModule('asynctask')
             ];
         }
 
