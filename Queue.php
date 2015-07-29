@@ -151,6 +151,17 @@ class Queue extends \yii\base\Component
 
     }
 
+    public function getStatDay($currentDate, $type = true)
+    {
+        $currentFailedKey = 'stat:failed:'.$currentDate;
+        $currentProcessedKey = 'stat:processed:'.$currentDate;
+        if ($type == true) {
+            $stat = $this->redis->get($currentProcessedKey);
+        } else {
+            $stat = $this->redis->get($currentFailedKey);
+        }
+        return intval($stat);
+    }
 
     public function getStat($type = true)
     {
@@ -283,5 +294,24 @@ class Queue extends \yii\base\Component
     public function getWorkerInfo($identity)
     {
         return $this->redis->get('worker:'. $identity);
+    }
+
+    public function getShowStat($day)
+    {
+        $days = [
+            'processed' => [],
+            'failed' => []
+        ];
+        if ($day == 7) {
+            $days['processed'][date('Y-m-d')] = $this->getStat(true);
+            $days['failed'][date('Y-m-d')] = $this->getStat(false);
+            for($i=1; $i<7; $i++) {
+                $date = date('Y-m-d', time()-3600*24*$i);
+                $days['processed'][$date] = $this->getStatDay($date, true);
+                $days['failed'][$date] = $this->getStat($date, false);
+            }
+        }
+
+        return $days;
     }
 }

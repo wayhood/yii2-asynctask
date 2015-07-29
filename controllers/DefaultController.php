@@ -20,9 +20,12 @@ class DefaultController extends \wh\asynctask\base\Controller
         parent::init();
     }
 
-    public function actionIndex()
+    public function actionIndex($day = 30)
     {
-        return $this->render('index');
+        $days = $this->queue->getShowStat($day);
+        return $this->render('index', [
+            'days' => $days
+        ]);
     }
 
 
