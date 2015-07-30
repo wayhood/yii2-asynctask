@@ -17,10 +17,10 @@ $this->title = 'Dashboard ';
  </div>
  <h5>
    <span class="history-heading">History</span>
-   <a class="history-graph " href="/admin/sidekiq/?days=7">1 week</a>
-   <a class="history-graph active" href="/admin/sidekiq/">1 month</a>
-   <a class="history-graph " href="/admin/sidekiq/?days=90">3 months</a>
-   <a class="history-graph " href="/admin/sidekiq/?days=180">6 months</a>
+    <?= Html::a('1 week', ['index', 'days' => 7], ['class' => 'history-graph']);?>
+    <?= Html::a('1 month', ['index'], ['class' => 'history-graph']);?>
+    <?= Html::a('3 months', ['index', 'days' => 90], ['class' => 'history-graph']);?>
+    <?= Html::a('6 months', ['index', 'days' => 180], ['class' => 'history-graph']);?>
  </h5>
  <div id="history" class="rickshaw_graph" data-failed="<?= Html::encode(json_encode($days['failed']))?>" data-processed="<?= Html::encode(json_encode($days['processed']))?>">
  </div>
