@@ -22,9 +22,10 @@ class DefaultController extends \wh\asynctask\base\Controller
 
     public function actionIndex($days = 30)
     {
-        $days = $this->queue->getShowStat($days);
+        $data = $this->queue->getShowStat($days);
         return $this->render('index', [
-            'days' => $days
+            'days' => $days,
+            'data' => $data
         ]);
     }
 }

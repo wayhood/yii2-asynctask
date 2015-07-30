@@ -17,12 +17,12 @@ $this->title = 'Dashboard ';
  </div>
  <h5>
    <span class="history-heading">History</span>
-    <?= Html::a('1 week', ['index', 'days' => 7], ['class' => 'history-graph']);?>
-    <?= Html::a('1 month', ['index'], ['class' => 'history-graph']);?>
-    <?= Html::a('3 months', ['index', 'days' => 90], ['class' => 'history-graph']);?>
-    <?= Html::a('6 months', ['index', 'days' => 180], ['class' => 'history-graph']);?>
+    <?= Html::a('1 week', ['index', 'days' => 7], ['class' => 'history-graph '. $days == 7 ? 'active' : '']);?>
+    <?= Html::a('1 month', ['index'], ['class' => 'history-graph '. $days == 30 ? 'active' : '']);?>
+    <?= Html::a('3 months', ['index', 'days' => 90], ['class' => 'history-graph '. $days == 90 ? 'active' : '']);?>
+    <?= Html::a('6 months', ['index', 'days' => 180], ['class' => 'history-graph '. $days == 180 ? 'active' : '']);?>
  </h5>
- <div id="history" class="rickshaw_graph" data-failed="<?= Html::encode(json_encode($days['failed']))?>" data-processed="<?= Html::encode(json_encode($days['processed']))?>">
+ <div id="history" class="rickshaw_graph" data-failed="<?= Html::encode(json_encode($data['failed']))?>" data-processed="<?= Html::encode(json_encode($data['processed']))?>">
  </div>
 </div>
 

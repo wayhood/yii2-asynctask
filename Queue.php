@@ -303,38 +303,20 @@ class Queue extends \yii\base\Component
             'processed' => [],
             'failed' => []
         ];
-        $cacheKey = 'stat:'.$currentDate.':'.$day;
-        if ($days == 7) {
-
-            $data = $this->redis->get($cacheKey)
-            if ($data == false) {
-                $ret['processed'][date('Y-m-d')] = $this->getStat(true);
-                $ret['failed'][date('Y-m-d')] = $this->getStat(false);
-                for($i=1; $i<7; $i++) {
-                    $date = date('Y-m-d', time()-3600*24*$i);
-                    $ret['processed'][$date] = $this->getStatDay($date, true);
-                    $ret['failed'][$date] = $this->getStat($date, false);
-                }
-                $this->redis->set($cacheKey, json_encode($ret));
-                $this->redis->expire($cacheKey, 3600*24);
-            } else {
-                $ret = @json_decode($data);
+        $cacheKey = 'stat:'.$currentDate.':'.$days;
+        $data = $this->redis->get($cacheKey);
+        if ($data == false) {
+            $ret['processed'][date('Y-m-d')] = $this->getStat(true);
+            $ret['failed'][date('Y-m-d')] = $this->getStat(false);
+            for($i=1; $i<$days; $i++) {
+                $date = date('Y-m-d', time()-3600*24*$i);
+                $ret['processed'][$date] = $this->getStatDay($date, true);
+                $ret['failed'][$date] = $this->getStatDay($date, false);
             }
-        } else if ($days == 30) {
-            $data = $this->redis->get($cacheKey)
-            if ($data == false) {
-                $ret['processed'][date('Y-m-d')] = $this->getStat(true);
-                $ret['failed'][date('Y-m-d')] = $this->getStat(false);
-                for($i=1; $i<30; $i++) {
-                    $date = date('Y-m-d', time()-3600*24*$i);
-                    $ret['processed'][$date] = $this->getStatDay($date, true);
-                    $ret['failed'][$date] = $this->getStat($date, false);
-                }
-                $this->redis->set($cacheKey, json_encode($ret));
-                $this->redis->expire($cacheKey, 3600*24);
-            } else {
-                $ret = @json_decode($data);
-            }
+            $this->redis->set($cacheKey, json_encode($ret));
+            $this->redis->expire($cacheKey, 3600*24);
+        } else {
+            $ret = @json_decode($data, true);
         }
 
         return $ret;
