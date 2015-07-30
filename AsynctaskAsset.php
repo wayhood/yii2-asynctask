@@ -16,9 +16,11 @@ class AsynctaskAsset extends \yii\web\AssetBundle
     public $sourcePath = '@wh/asynctask/assets';
     public $css = [
         'main.css',
+        'rickshaw.min.css'
     ];
     public $js = [
-        'gii.js',
+        'd3.v3.js',
+        'rickshaw.min.js'
     ];
     public $depends = [
         'yii\web\YiiAsset',
