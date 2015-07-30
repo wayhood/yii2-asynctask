@@ -343,3 +343,14 @@ body {
 .summary_bar ul a.btn-primary {
     color: white;
 }
+
+
+.history-graph.active {
+    background-color: #b1003e;
+    color: white;
+}
+.history-graph {
+    border-radius: 3px;
+    font-size: 0.8em;
+    padding: 3px;
+}
