@@ -13,7 +13,7 @@ use Yii;
  * @author Song Yeung <netyum@163.com>
  * @date 12/20/14
  */
-class Worker extends \yii\base\Component
+abstract class Worker extends \yii\base\Component
 {
     // a queue name
     protected static $queue = 'default';
@@ -24,12 +24,10 @@ class Worker extends \yii\base\Component
     protected static $retry = true;
 
     /**
-     * async process. please feature in subclass.
+     * async process. please feature in subclass. 
      * @return mixed
      */
-    public static function run()
-    {
-    }
+    //public static function run() {}
 
     /**
      * async push queue
