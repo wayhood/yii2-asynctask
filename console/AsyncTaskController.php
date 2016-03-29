@@ -7,6 +7,7 @@ namespace wh\asynctask\console;
 
 use wh\asynctask\Queue;
 use Yii;
+use yii\helpers\FileHelper;
 
 /**
  * Class AsyncTaskController
@@ -103,7 +104,7 @@ class AsyncTaskController extends \yii\console\Controller
         $command  = $this->getCommandLine();
 
         $logPath = $this->module->getWorkerLogPath();
-
+        FileHelper::createDirectory($logPath);
         $queue = Yii::createObject([
             'class' => 'wh\asynctask\Queue',
             'redis' => $this->module->redis
@@ -124,7 +125,7 @@ class AsyncTaskController extends \yii\console\Controller
         }
 
         $currentDate = date('Y-m-d');
-
+        FileHelper::createDirectory($logPath.'/'.$currentDate);
         while(1) {
             $ret = $queue->redis->executeCommand('PING');
             if (!$ret) {
@@ -174,9 +175,8 @@ class AsyncTaskController extends \yii\console\Controller
                     $currentSubProcessNum = $this->getCurrentSubProcessNum();
                     $subProcessNum = $max - $currentSubProcessNum;
                     if ($subProcessNum > 0) {
-                        $logStdout = "{$logPath}/{$queueName}.{$currentDate}.stdout.log";
-                        $logStderr = "{$logPath}/{$queueName}.{$currentDate}.stderr.log";
-
+                        $logStdout = "{$logPath}/{$currentDate}/{$queueName}.stdout.log";
+                        $logStderr = "{$logPath}/{$currentDate}/{$queueName}.stderr.log";
                         $realCommand = sprintf('%s/worker "%s" >> %s  2>>%s &', trim($command), $queueName, $logStdout, $logStderr);
                         exec($realCommand);
                     }
