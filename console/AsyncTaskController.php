@@ -136,6 +136,7 @@ class AsyncTaskController extends \yii\console\Controller
                 sleep(5);
                 $queue->setStatDay($currentDate);
                 $currentDate = date('Y-m-d');
+                FileHelper::createDirectory($logPath.'/'.$currentDate);
             }
 
             //process schedule
