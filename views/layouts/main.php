@@ -1,5 +1,4 @@
 <?php
-use \Yii;
 use yii\bootstrap\NavBar;
 use yii\bootstrap\Nav;
 use yii\helpers\Html;
