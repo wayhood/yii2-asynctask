@@ -21,6 +21,5 @@
         }
     },
     "extra": {
-        "bootstrap": "wh\\asynctask\\Bootstrap"
     }
 }
