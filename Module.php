@@ -6,6 +6,7 @@
 namespace wh\asynctask;
 
 use Yii;
+use yii\base\BootstrapInterface;
 
 /**
  * Class Worker
