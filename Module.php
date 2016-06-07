@@ -13,7 +13,7 @@ use Yii;
  * @author Song Yeung <netyum@163.com>
  * @date 12/20/14
  */
-class Module extends \yii\base\Module
+class Module extends \yii\base\Module implements BootstrapInterface
 {
     public $redis = 'redis';
 
