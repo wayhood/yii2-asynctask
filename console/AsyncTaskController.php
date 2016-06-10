@@ -35,6 +35,12 @@ class AsyncTaskController extends \yii\console\Controller
     public $processMaxNum = 10;
 
     /**
+     * max process retries num;
+     * @var int
+     */
+    public $processMaxRetries = 5;
+
+    /**
      * 选项
      * @param string $actionID
      * @return array
@@ -67,15 +73,25 @@ class AsyncTaskController extends \yii\console\Controller
         /** @var $identity string */
         $identity = $queue->getWorkerIdentity();
 
+        $logPath = $this->module->getWorkerLogPath();
+        FileHelper::createDirectory($logPath);
+        $currentDate = date('Y-m-d');
+        FileHelper::createDirectory($logPath.'/'.$currentDate);
+        $logStderr = "{$logPath}/{$currentDate}/{$q}.stderr.log";
         $data = $queue->pop($q);
 
         if (!is_null($data)) {
             try {
                 $queue->setWorkerStart($identity, $data);
+                $this->setProcessTitle($data['class'].':run('.implode(', ', $data['args']).')');
                 forward_static_call_array([$data['class'], 'run'], $data['args']);
             } catch (\Exception $e) {
-                if ($data['retry']) {
+                if($data['retry']
+                    && (!isset($data['retry_count']) || $data['retry_count'] < $this->processMaxRetries)
+                ) {
                     $queue->setStat(false);
+                    $realCommand = sprintf('echo "%s">>%s &', $e->getMessage(), $logStderr);
+                    exec($realCommand);
                     $queue->setRetry([
                         'retry' => $data['retry'],
                         'class' => $data['class'],
@@ -212,4 +228,21 @@ class AsyncTaskController extends \yii\console\Controller
         $current = intval(`ps -ef | grep "$str" |  grep -v grep | wc -l`);
         return $current;
     }
-} 
+
+     /**
+     * Set process title to given string.
+     * Process title is changing by cli_set_process_title (PHP >= 5.5) or
+     * setproctitle (if proctitle extension is available).
+     *
+     * @param string          $title
+     */
+    protected function setProcessTitle($title)
+    {
+        if (function_exists('cli_set_process_title')) {
+            cli_set_process_title($title);
+        } elseif (function_exists('setproctitle')) {
+            setproctitle($title);
+        }
+    }
+
+}
