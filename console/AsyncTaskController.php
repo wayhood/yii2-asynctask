@@ -153,7 +153,7 @@ class AsyncTaskController extends \yii\console\Controller
             unset($scheduleList);
 
             //process retry
-            $retryList = $queue->getReties();
+            $retryList = $queue->getRetries();
             foreach($retryList as $data) {
                 $data = @json_decode($data, true);
                 if (!is_null($data)) {
