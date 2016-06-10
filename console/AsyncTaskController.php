@@ -83,7 +83,7 @@ class AsyncTaskController extends \yii\console\Controller
         if (!is_null($data)) {
             try {
                 $queue->setWorkerStart($identity, $data);
-                $this->setProcessTitle($data['class'].':run('.implode(', ', $data['args']).')');
+                $this->setProcessTitle('AsyncTask: '.$data['class'].':run('.implode(', ', $data['args']).')');
                 forward_static_call_array([$data['class'], 'run'], $data['args']);
             } catch (\Exception $e) {
                 if($data['retry']
