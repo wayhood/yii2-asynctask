@@ -145,6 +145,9 @@ class AsyncTaskController extends \yii\console\Controller
                 $data = @json_decode($data, true);
                 if (!is_null($data)) {
                     $queue->quickPush($data['queue'], $data);
+                    if(!empty($data['each'])) {
+                        $queue->setSchedule($data, microtime(true) + $data['each']);
+                    }
                 }
             }
             unset($scheduleList);
