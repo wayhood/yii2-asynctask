@@ -132,7 +132,12 @@ abstract class Worker extends \yii\base\Component
 
     protected static function getRandomId()
     {
-        return \Yii::app()->redis->incr('queue:'.static::$queue.':counter');
+        $queue = Yii::createObject([
+            'class' => 'wh\asynctask\Queue',
+            'redis' => static::$redis
+        ]);
+
+        return $queue->redis->incr('queue:'.static::$queue.':counter');
     }
 
     public static function delete($jobIds)
