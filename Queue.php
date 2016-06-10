@@ -102,7 +102,7 @@ class Queue extends \yii\base\Component
         return $this->redis->zadd($key, doubleval($score), json_encode($data));
     }
 
-    public function getReties($remove=true)
+    public function getRetries($remove=true)
     {
         $key = 'retry';
         $score = doubleval(microtime(true));
