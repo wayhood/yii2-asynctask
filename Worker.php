@@ -73,7 +73,7 @@ abstract class Worker extends \yii\base\Component
         $score = microtime(true) + $time;
 
         $queue = Yii::createObject([
-            'class' => 'dse\common\jobs\Queue',
+            'class' => 'wh\asynctask\Queue',
             'redis' => static::$redis
         ]);
 
@@ -98,7 +98,7 @@ abstract class Worker extends \yii\base\Component
         $score = microtime(true) + $time;
 
         $queue = Yii::createObject([
-            'class' => 'dse\common\jobs\Queue',
+            'class' => 'wh\asynctask\Queue',
             'redis' => static::$redis
         ]);
 
@@ -143,7 +143,7 @@ abstract class Worker extends \yii\base\Component
     public static function delete($jobIds)
     {
         $queue = Yii::createObject([
-            'class' => 'dse\common\jobs\Queue',
+            'class' => 'wh\asynctask\Queue',
             'redis' => static::$redis
         ]);
         if(!is_array($jobIds)) {
