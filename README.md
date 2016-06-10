@@ -95,7 +95,7 @@ CALL THE WORKER IN CONTROLLER OR MODEL AND ANYWHERE.
 // run one time
     \frontend\workers\TestWorker::runAysnc('a', 'b');
 // run after 10 sec
-    \frontend\workers\TestWorker::runIn('10s' 'a', 'b');
+    \frontend\workers\TestWorker::runIn('10s', 'a', 'b');
 // run each 10 min
-    \frontend\workers\TestWorker::runEach('10m' 'a', 'b');
+    \frontend\workers\TestWorker::runEach('10m', 'a', 'b');
 ```
