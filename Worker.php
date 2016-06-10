@@ -49,6 +49,7 @@ abstract class Worker extends \yii\base\Component
         ]);
 
         $queue->push(static::$queue, $payload);
+        return $payload['job_id'];
     }
 
     /**
@@ -58,51 +59,111 @@ abstract class Worker extends \yii\base\Component
     public static function runIn()
     {
         $args = func_get_args();
-        $time = array_shift($args);
+        $time = static::getTime(array_shift($args));
 
-        $time = preg_split('/\s*/', $time, -1, PREG_SPLIT_NO_EMPTY);
-        if (count($time) == 2) {
-            $num = $time[0];
-            $interval = $time[1];
+        $payload = [
+            'retry' => static::$retry,
+            'queue' => static::$queue,
+            'class' => static::className(),
+            'args' => $args,
+            'job_id' => static::getRandomId(),
+            'enqueued_at' => microtime(true)
+        ];
 
-            $payload = [
-                'retry' => static::$retry,
-                'queue' => static::$queue,
-                'class' => static::className(),
-                'args' => $args,
-                'job_id' => self::getRandomId(),
-                'enqueued_at' => microtime(true)
-            ];
+        $score = microtime(true) + $time;
 
-            $second = 0;
-            switch($interval) {
-                case 'h':
-                    $second = 60*60*$num;
-                    break;
-                case 'd':
-                    $second = 60*60*24*$num;
-                    break;
-                case 'm':
-                    $second = 60*$num;
-                    break;
-                case 's':
-                    $second = $num;
-            }
+        $queue = Yii::createObject([
+            'class' => 'dse\common\jobs\Queue',
+            'redis' => static::$redis
+        ]);
 
-            $score = microtime(true) + $second;
+        $queue->setSchedule($payload, $score);
+        return $payload['job_id'];
+    }
 
-            $queue = Yii::createObject([
-                'class' => 'wh\asynctask\Queue',
-                'redis' => static::$redis
-            ]);
+    public static function runEach()
+    {
+        $args = func_get_args();
+        $time = static::getTime(array_shift($args));
 
-            $queue->setSchedule($payload, $score);
+        $payload = [
+            'retry' => static::$retry,
+            'each' => $time,
+            'queue' => static::$queue,
+            'class' => static::className(),
+            'args' => $args,
+            'job_id' => static::getRandomId(),
+            'enqueued_at' => microtime(true)
+        ];
+        $score = microtime(true) + $time;
+
+        $queue = Yii::createObject([
+            'class' => 'dse\common\jobs\Queue',
+            'redis' => static::$redis
+        ]);
+
+        $queue->setSchedule($payload, $score);
+        return $payload['job_id'];
+    }
+
+    protected static function getTime($time)
+    {
+        preg_match('/^([0-9]+)[ ]*([hdms]?)$/', $time, $match);
+        $num = (int) $match[1];
+        $interval = $match[2];
+        $second = 0;
+        switch($interval) {
+            case 'h':
+                $second = 60 * 60 * $num;
+                break;
+            case 'd':
+                $second = 60 * 60 * 24 * $num;
+                break;
+            case 'm':
+                $second = 60 * $num;
+                break;
+            case 's':
+            default:
+                $second = $num;
         }
+
+        return $second;
     }
 
     protected static function getRandomId()
     {
-        $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        return substr(str_shuffle(str_repeat($pool, 5)), 0, 32);
+        return \Yii::app()->redis->incr('queue:'.static::$queue.':counter');
     }
+
+    public static function delete($jobIds)
+    {
+        $queue = Yii::createObject([
+            'class' => 'dse\common\jobs\Queue',
+            'redis' => static::$redis
+        ]);
+        if(!is_array($jobIds)) {
+            $jobIds = [$jobIds];
+        }
+
+        $list = $queue->getQueueList(static::$queue, 0, PHP_INT_MAX);
+        foreach($list as $item) {
+            $data = json_decode($item, true);
+            if($data['class'] == get_called_class()
+                && in_array($data['job_id'], $jobIds)
+            ) {
+                $queue->removeQueueItem(static::$queue, $item);
+            }
+        }
+
+        $list = $queue->getAllSchedule(static::$queue);
+        foreach($list as $item) {
+            $data = json_decode($item, true);
+            if($data['class'] == get_called_class()
+                && in_array($data['job_id'], $jobIds)
+            ) {
+                $queue->removeScheduleItem($item);
+            }
+        }
+    }
+
 }
