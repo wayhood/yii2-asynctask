@@ -89,7 +89,7 @@ class Queue extends \yii\base\Component
     {
         $key = 'retry';
         if (is_null($score)) {
-            $socre = doubleval(microtime(true));
+            $score = doubleval(microtime(true));
         } else {
             $score = doubleval($score);
         }
@@ -102,7 +102,7 @@ class Queue extends \yii\base\Component
         return $this->redis->zadd($key, doubleval($score), json_encode($data));
     }
 
-    public function getReties($remove=true)
+    public function getRetries($remove=true)
     {
         $key = 'retry';
         $score = doubleval(microtime(true));
@@ -243,6 +243,12 @@ class Queue extends \yii\base\Component
     {
         $queue = 'queue:'.$queue;
         $this->redis->lrem($queue, -1, $data);
+    }
+
+    public function removeScheduleItem($data)
+    {
+        $key = 'schedule';
+        return $this->redis->zrem($key, -1, $data);
     }
 
     public function getWorkerIdentity()

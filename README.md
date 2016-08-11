@@ -92,5 +92,10 @@ class TestWorker extends \wh\asynctask\Worker
 CALL THE WORKER IN CONTROLLER OR MODEL AND ANYWHERE.
 
 ```
-	\frontend\workers\TestWorker::runAysnc('a', 'b');
+// run one time
+    \frontend\workers\TestWorker::runAysnc('a', 'b');
+// run after 10 sec
+    \frontend\workers\TestWorker::runIn('10s', 'a', 'b');
+// run each 10 min
+    \frontend\workers\TestWorker::runEach('10m', 'a', 'b');
 ```
